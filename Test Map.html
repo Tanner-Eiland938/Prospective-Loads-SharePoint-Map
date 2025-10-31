@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Map Test</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    body, html { margin:0; padding:0; height:100%; }
+    #map { width:100%; height:100%; }
+    .leaflet-tooltip {
+      font-weight:bold;
+      background:white;
+      border:1px solid #333;
+      border-radius:3px;
+      padding:2px 6px;
+      color:#000;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script>
+  // --- Hardcoded test points ---
+  const points = [
+    { id: 1, title: "Point A", lat: 47.6101, lng: -122.2015 },
+    { id: 2, title: "Point B", lat: 47.6205, lng: -122.3493 },
+    { id: 3, title: "Point C", lat: 47.6769, lng: -122.2060 }
+  ];
+
+  // --- Parse ID from URL (case-insensitive) ---
+  const params = new URLSearchParams(window.location.search);
+  let targetId = params.get('ID') || params.get('id');
+
+  // --- Initialize Leaflet Map ---
+  const map = L.map('map');
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // --- Add markers with permanent labels ---
+  const markers = points.map(p =>
+    L.marker([p.lat, p.lng])
+     .addTo(map)
+     .bindTooltip(p.title, { permanent:true, direction:"top", offset:[0,-8] })
+  );
+
+  // --- Zoom logic ---
+  if (targetId) {
+    const target = points.find(p => p.id == targetId);
+    if (target) {
+      map.setView([target.lat, target.lng], 13);
+    } else {
+      alert("No point found with ID " + targetId);
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+    }
+  } else {
+    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+  }
+</script>
+</body>
+</html>
